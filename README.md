@@ -161,12 +161,20 @@ spec:
 
 ### Task
 
-- schedule: Uses a Cron expression to schedule the task to run every 5 minutes.
-- containers: Defines the container and the command to be executed in the Pod.
-- restartPolicy: Set to Never, ensuring the Pod does not restart upon failure.
-- backoffLimit: Prevents retries when the job fails.
-- successfulJobsHistoryLimit and failedJobsHistoryLimit: Limit the number of retained successful and failed jobs.
-- ttlSecondsAfterFinished: Ensures the Pod is terminated 8 seconds after completion.
+Create a CronJob named ppi that runs a single-container Pod with the following configuration:
+
+```yaml
+- name: pi
+  image: perl:5
+  command: ["perl", "-Mbignum=bpi", "-wle", "print bpi(2000)"]
+```
+Configure the CronJob with the following properties:
+
+Runs every 5 minutes.
+Retain 2 completed jobs.
+Retain 4 failed jobs.
+Never restart the Pod.
+Stop the Pod after 8 seconds.
 
 ```yaml
 # cronjob-task-1..yaml
@@ -194,10 +202,17 @@ spec:
 
 ```
 
+- schedule: Uses a Cron expression to schedule the task to run every 5 minutes.
+- containers: Defines the container and the command to be executed in the Pod.
+- restartPolicy: Set to Never, ensuring the Pod does not restart upon failure.
+- backoffLimit: Prevents retries when the job fails.
+- successfulJobsHistoryLimit and failedJobsHistoryLimit: Limit the number of retained successful and failed jobs.
+- ttlSecondsAfterFinished: Ensures the Pod is terminated 8 seconds after completion.
+
+
 ```sh
 kubectl apply -f cronjob-task-1.yaml
 kubectl get cronjob
 kubectl get jobs
 kubectl logs $POD
-
 ```

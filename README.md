@@ -132,3 +132,72 @@ kubectl explain secrets
 kubectl explain services
 kubectl explain cronjobs
 ```
+
+## Cronjob
+
+```yaml
+# https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#example
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: hello
+spec:
+  schedule: "* * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: hello
+            image: busybox:1.28
+            imagePullPolicy: IfNotPresent
+            command:
+            - /bin/sh
+            - -c
+            - date; echo Hello from the Kubernetes cluster
+          restartPolicy: OnFailure
+```
+
+### Task
+
+- schedule: Uses a Cron expression to schedule the task to run every 5 minutes.
+- containers: Defines the container and the command to be executed in the Pod.
+- restartPolicy: Set to Never, ensuring the Pod does not restart upon failure.
+- backoffLimit: Prevents retries when the job fails.
+- successfulJobsHistoryLimit and failedJobsHistoryLimit: Limit the number of retained successful and failed jobs.
+- ttlSecondsAfterFinished: Ensures the Pod is terminated 8 seconds after completion.
+
+```yaml
+# cronjob-task-1..yaml
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ppi
+spec:
+  schedule: "*/5 * * * *" # Run every 5 minutes
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: pi
+            image: perl:5
+            command: ["perl", "-Mbignum=bpi", "-wle", "print bpi(2000)"]
+          restartPolicy: Never # Never restart the Pod
+      backoffLimit: 0 # Do not retry on failure
+      activeDeadlineSeconds: 8 # Terminate Pod 8 seconds after start 
+      ttlSecondsAfterFinished: 8 # Terminate Pod 8 seconds after completion 
+  successfulJobsHistoryLimit: 2 # Retain 2 successful jobs
+  failedJobsHistoryLimit: 4 # Retain 4 failed jobs
+
+```
+
+```sh
+kubectl apply -f cronjob-task-1.yaml
+kubectl get cronjob
+kubectl get jobs
+kubectl logs $POD
+
+```

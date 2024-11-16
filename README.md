@@ -170,11 +170,11 @@ Create a CronJob named ppi that runs a single-container Pod with the following c
 ```
 Configure the CronJob with the following properties:
 
-Runs every 5 minutes.
-Retain 2 completed jobs.
-Retain 4 failed jobs.
-Never restart the Pod.
-Stop the Pod after 8 seconds.
+1. Runs every 5 minutes.
+1. Retain 2 completed jobs.
+1. Retain 4 failed jobs.
+1. Never restart the Pod.
+1. Stop the Pod after 8 seconds.
 
 ```yaml
 # cronjob-task-1..yaml
@@ -212,6 +212,45 @@ spec:
 
 ```sh
 kubectl apply -f cronjob-task-1.yaml
+kubectl get cronjob
+kubectl get jobs
+kubectl logs $POD
+```
+
+
+
+1. Use busybox:stable image and execute date command
+1. The job should run in 10 seconds or until Kubernetes terminates it
+1. CronJob name and namespace should be "hello"
+1. Verify the Job execution at least once
+
+```yaml
+# cronjob-task-2.yaml
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: hello
+spec:
+  schedule: "* * * * *" 
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 10 # Terminate Pod 10 seconds after start 
+      template:
+        spec:
+          containers:
+          - name: hello
+            image: busybox:stable
+            command:
+            - /bin/sh
+            - -c
+            - date
+          restartPolicy: OnFailure
+```
+
+
+```sh
+kubectl apply -f cronjob-task-2.yaml
 kubectl get cronjob
 kubectl get jobs
 kubectl logs $POD

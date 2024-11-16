@@ -287,3 +287,74 @@ status: {}
 kubectl apply -f task-4.yaml
 kubectl describe pod nginx-resources
 ```
+
+
+
+```sh
+kubectl create ns haddock
+kubectl -n haddock get limitrange -o yaml
+```
+
+```yaml
+# cpu-mem-resource-constraint.yaml
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: cpu-mem-resource-constraint
+  namespace: haddock
+spec:
+  limits:
+  - default: # this section defines default limits
+      cpu: 500m
+      memory: 16Mi
+    defaultRequest: # this section defines default requests
+      cpu: 500m
+      memory: 8Mi
+    max: # max and min define the limit range
+      cpu: "1"
+      memory: 40Mi
+    min:
+      cpu: 100m
+    type: Container
+```
+
+```sh
+kubectl apply -f cpu-mem-resource-constraint.yaml
+```
+
+```yaml
+# haddock-nosql-deployment.yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: nosql
+  name: nosql
+  namespace: haddock
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nosql
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: nosql
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          resources:
+            limits:
+              memory: "20Mi"
+            requests:
+              memory: "15Mi"
+```
+
+```sh
+kubectl apply -f haddock-nosql-deployment.yaml
+```

@@ -255,3 +255,35 @@ kubectl get cronjob
 kubectl get jobs
 kubectl logs $POD
 ```
+
+```sh
+kubectl run nginx-resources --dry-run=client -o yaml --image=nginx:1.16 > task-4.yaml
+```
+
+```yaml
+# task-4.yaml
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: nginx-resources
+  name: nginx-resources
+spec:
+  containers:
+  - image: nginx:1.16
+    name: nginx-resources
+    resources:
+      requests:
+        cpu: "40m"
+        memory: "50Mi"
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```
+
+```sh
+kubectl apply -f task-4.yaml
+kubectl describe pod nginx-resources
+```

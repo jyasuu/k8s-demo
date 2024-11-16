@@ -47,4 +47,5 @@ kubectl scale deployment --replicas=3 httpd-frontend
 kubectl get deployments.apps httpd-frontend
 kubectl describe deployments.apps httpd-frontend
 kubectl get pods
+kubectl logs $POD -f
 ```

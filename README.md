@@ -121,3 +121,14 @@ spec:
 kubectl apply -f compute-quota-dev.yaml
 kubectl describe namespaces dev
 ```
+
+```sh
+kubectl api-resources
+kubectl explain namespaces
+kubectl explain deployments
+kubectl explain replicasets
+kubectl explain configmaps
+kubectl explain secrets
+kubectl explain services
+kubectl explain cronjobs
+```

@@ -501,3 +501,119 @@ spec:
 ```sh
 kubectl apply -f haddock-nosql-deployment.yaml
 ```
+
+1. canary deployment
+2. 
+```sh
+kubectl create ns goshawk
+kubectl create deployment current-chipmunk-deployment --image=nginx --replicas=5 --dry-run=client -o yaml -n goshawk > current-chipmunk-deployment.yaml
+kubectl expose -f current-chipmunk-deployment.yaml --port=80 -n goshawk --dry-run=client -o yaml > chipmunk-service.yaml
+
+```
+
+
+```yaml
+# current-chipmunk-deployment.yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: chipmunk
+    track: stable
+  name: current-chipmunk-deployment
+  namespace: goshawk
+spec:
+  replicas: 6
+  selector:
+    matchLabels:
+      app: chipmunk
+      track: stable
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: chipmunk
+        track: stable
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+        resources: {}
+status: {}
+```
+
+```yaml
+# chipmunk-service.yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: chipmunk
+  name: chipmunk-service
+  namespace: goshawk
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: chipmunk
+status:
+  loadBalancer: {}
+
+```
+
+```sh
+
+kubectl apply -f current-chipmunk-deployment.yaml
+kubectl apply -f chipmunk-service.yaml
+kubectl scale deployment current-chipmunk-deployment --replicas=10 -n goshawk
+
+```
+
+```yaml
+# canary-chipmunk-deployment.yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: chipmunk
+    track: canary
+  name: canary-chipmunk-deployment
+  namespace: goshawk
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: chipmunk
+      track: canary
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: chipmunk
+        track: canary
+    spec:
+      containers:
+      - image: nginx:latest
+        name: nginx-canary
+        resources: {}
+status: {}
+```
+
+```sh
+kubectl get svc -n goshawk -o wide
+kubectl get ep -n goshawk
+kubectl edit ep -n goshawk
+kubectl get ep -n goshawk -o yaml | grep deployment
+kubectl describe ep -n goshawk
+
+```

@@ -279,6 +279,29 @@ spec:
     - containerPort: 80
 ```
 
+## LimitRange
+
+```yaml
+# https://kubernetes.io/docs/concepts/policy/limit-range/#limitrange-and-admission-checks-for-pods
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: cpu-resource-constraint
+spec:
+  limits:
+  - default: # this section defines default limits
+      cpu: 500m
+    defaultRequest: # this section defines default requests
+      cpu: 500m
+    max: # max and min define the limit range
+      cpu: "1"
+    min:
+      cpu: 100m
+    type: Container
+
+```
+
 ## Task
 
 Create a CronJob named ppi that runs a single-container Pod with the following configuration:

@@ -810,3 +810,46 @@ spec:
 ```sh
 for i in $(seq 1 10); do curl -s --resolve canary.echo.pod.name.com:80:<Ingress-Controller-IP> canary.echo.pod.name.com; done
 ```
+
+```sh
+kubectl create deployment api --image=nginx:1.16 --replicas=6 -n ckad00014 --dry-run=client -o yaml > api.yaml
+```
+
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: api
+  name: api
+  namespace: ckad00014
+spec:
+  replicas: 6
+  selector:
+    matchLabels:
+      app: api
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: api
+    spec:
+      containers:
+      - image: nginx:1.16
+        name: nginx
+        ports:
+        - containerPort: 80
+        env:
+        - name: NGINX_PORT
+          value: "8000"
+        resources: {}
+status: {}
+
+```
+
+```sh
+kubectl exec -n ckad00014 -it api-59f9d5cf5b-b22wm -- sh -c 'env'
+```

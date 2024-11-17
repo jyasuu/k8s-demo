@@ -262,6 +262,23 @@ spec:
         - containerPort: 80
 ```
 
+## Pod
+
+```yaml
+# https://kubernetes.io/docs/concepts/workloads/pods/#using-pods
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.14.2
+    ports:
+    - containerPort: 80
+```
+
 ## Task
 
 Create a CronJob named ppi that runs a single-container Pod with the following configuration:

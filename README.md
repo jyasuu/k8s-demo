@@ -336,6 +336,32 @@ spec:
 
 ```
 
+## Ingress
+
+```yaml
+# https://kubernetes.io/zh-cn/docs/concepts/services-networking/ingress/#the-ingress-resource
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: minimal-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx-example
+  rules:
+  - http:
+      paths:
+      - path: /testpath
+        pathType: Prefix
+        backend:
+          service:
+            name: test
+            port:
+              number: 80
+
+```
+
 ## Task
 
 Create a CronJob named ppi that runs a single-container Pod with the following configuration:
@@ -650,4 +676,137 @@ kubectl edit ep -n goshawk
 kubectl get ep -n goshawk -o yaml | grep deployment
 kubectl describe ep -n goshawk
 
+```
+
+
+1. ingress canary
+
+```yaml
+# base-app-svc.yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: base-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: base-app
+  template:
+    metadata:
+      labels:
+        app: base-app
+    spec:
+      containers:
+      - name: base-app
+        image: anvesh35/echo-pod-name
+        ports:
+          - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: base-svc
+  labels:
+    app: base-app
+spec:
+  type: ClusterIP
+  selector:
+    app: base-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+```
+
+```yaml
+# canary-app-svc.yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: canary-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: canary-app
+  template:
+    metadata:
+      labels:
+        app: canary-app
+    spec:
+      containers:
+      - name: canary-app
+        image: anvesh35/echo-pod-name
+        ports:
+          - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: canary-svc
+  labels:
+    app: canary-app
+spec:
+  type: ClusterIP
+  selector:
+    app: canary-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+```
+
+```yaml
+# base-ingress.yaml
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: base-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: canary.echo.pod.name.com
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: base-svc
+            port:
+              number: 80
+```
+
+```yaml
+# canary-ingress.ymal
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: canary-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/canary: "true"
+    nginx.ingress.kubernetes.io/canary-weight: "30"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: canary.echo.pod.name.com
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: canary-svc
+            port:
+              number: 80
+```
+
+
+```sh
+for i in $(seq 1 10); do curl -s --resolve canary.echo.pod.name.com:80:<Ingress-Controller-IP> canary.echo.pod.name.com; done
 ```

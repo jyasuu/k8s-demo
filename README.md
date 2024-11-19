@@ -853,3 +853,67 @@ status: {}
 ```sh
 kubectl exec -n ckad00014 -it api-59f9d5cf5b-b22wm -- sh -c 'env'
 ```
+
+```sh
+kubectl create ns gorilla
+kubectl taint nodes --all node-role.kubernetes.io/master-
+kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+```
+
+```yaml
+# honeybee-deployment.yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: honeybee-deployment
+  namespace: gorilla
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: honeybee-deployment
+  template:
+    metadata:
+      labels:
+        role: honeybee-deployment
+    spec:
+      containers:
+      - name: honeybee
+        image: bitnami/kubectl:latest
+        command: ["/bin/sh"]
+        args: ["-c", "while true; do kubectl get sa; sleep 10;done"]
+        tty: true
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: kube-config
+          mountPath: /root/.kube/
+      volumes:
+      - name: kube-config
+        hostPath:
+          path: /home/$USER/.kube/
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: Exists
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/control-plane
+        operator: Exists
+
+```
+
+```sh
+kubectl apply -f honeybee-deployment.yaml
+kubectl delete -f honeybee-deployment.yaml
+kubectl create role gorilla --verb=get --verb=list --resource=serviceaccounts -n gorilla
+kubectl create serviceaccount gorilla -n gorilla
+kubectl delete rolebinding gorilla -n gorilla
+kubectl create rolebinding gorilla --role=gorilla --serviceaccount=gorilla:gorilla --namespace=gorilla
+kubectl set serviceaccount deployments honeybee-deployment gorilla -n gorilla
+kubectl edit deployment honeybee-deployment -n gorilla
+```

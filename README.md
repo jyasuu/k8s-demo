@@ -917,3 +917,113 @@ kubectl create rolebinding gorilla --role=gorilla --serviceaccount=gorilla:goril
 kubectl set serviceaccount deployments honeybee-deployment gorilla -n gorilla
 kubectl edit deployment honeybee-deployment -n gorilla
 ```
+
+
+
+### 1. Create a PersistentVolume (PV):
+You need to create a PersistentVolume named `earth-project-earthflower-pv` with the following requirements:
+- Capacity of 2Gi
+- Access mode `ReadWriteOnce`
+- HostPath of `/Volumes/Data`
+- No storageClassName defined.
+
+Here’s how you can define the PersistentVolume (PV) in a YAML file:
+
+```yaml
+# earth-project-earthflower-pv.yaml
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: earth-project-earthflower-pv
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /Volumes/Data
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+```
+
+### 2. Create a PersistentVolumeClaim (PVC):
+Next, create a PersistentVolumeClaim named `earth-project-earthflower-pvc` in the `earth` namespace with the following requirements:
+- Request for 2Gi of storage
+- Access mode `ReadWriteOnce`
+- No `storageClassName` defined.
+
+Here’s the YAML definition for the PersistentVolumeClaim (PVC):
+
+```yaml
+# earth-project-earthflower-pvc.yaml
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: earth-project-earthflower-pvc
+  namespace: earth
+spec:
+  resources:
+    requests:
+      storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ""
+```
+
+### 3. Create a Deployment:
+Finally, create a Deployment named `project-earthflower` in the `earth` namespace that mounts the PVC to `/tmp/project-data` and uses the image `httpd:2.4.41-alpine`.
+
+Here’s the YAML definition for the Deployment:
+
+```yaml
+# project-earthflower-deployment.yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: project-earthflower
+  name: project-earthflower
+  namespace: earth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: project-earthflower
+  template:
+    metadata:
+      labels:
+        app: project-earthflower
+    spec:
+      containers:
+        - name: httpd
+          image: httpd:2.4.41-alpine
+          volumeMounts:
+            - mountPath: /tmp/project-data
+              name: project-data-volume
+      volumes:
+        - name: project-data-volume
+          persistentVolumeClaim:
+            claimName: earth-project-earthflower-pvc
+```
+
+### Complete Workflow:
+
+1. **Apply the PV YAML:**
+   ```bash
+   kubectl apply -f earth-project-earthflower-pv.yaml
+   ```
+
+2. **Apply the PVC YAML in the `earth` namespace:**
+   ```bash
+   kubectl apply -f earth-project-earthflower-pvc.yaml
+   ```
+
+3. **Apply the Deployment YAML in the `earth` namespace:**
+   ```bash
+   kubectl apply -f project-earthflower-deployment.yaml
+   ```
+
+This will create the required PV, PVC, and Deployment in your Kubernetes cluster, ensuring that the PersistentVolume is properly bound to the PersistentVolumeClaim and that the deployment mounts the volume at the correct path.

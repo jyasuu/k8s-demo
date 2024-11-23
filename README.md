@@ -1027,3 +1027,40 @@ spec:
    ```
 
 This will create the required PV, PVC, and Deployment in your Kubernetes cluster, ensuring that the PersistentVolume is properly bound to the PersistentVolumeClaim and that the deployment mounts the volume at the correct path.
+
+
+
+
+```sh
+kubectl create configmap some-config --from-literal=key3=value4
+kubectl run nginx-configmap --image=nginx:stable --dry-run=client -o yaml > nginx-configmap.yaml
+kubectl exec -it nginx-configmap -- sh -c 'cat /some/path/key3'
+```
+
+```yaml
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: nginx-configmap
+  name: nginx-configmap
+spec:
+  containers:
+  - image: nginx:stable
+    name: nginx-configmap
+    resources: {}
+    volumeMounts:
+    - name: some-config
+      mountPath: "/some/path"
+      readOnly: true
+  volumes:
+  - name: some-config
+    configMap:
+      name: some-config
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+
+```

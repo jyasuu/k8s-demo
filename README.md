@@ -1064,3 +1064,37 @@ spec:
 status: {}
 
 ```
+
+
+```sh
+kubectl create secret generic another-secret --from-literal=key1=value2 
+kubectl run nginx-secret --image=nginx:stable --dry-run=client -o yaml > nginx-secret.yaml
+kubectl exec -it nginx-secret -- sh -c 'env'
+```
+
+```yaml
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: nginx-secret
+  name: nginx-secret
+spec:
+  containers:
+  - image: nginx:1.16
+    name: nginx-secret
+    resources: {}
+    env:
+    - name: COOL_VARIABLE
+      valueFrom:
+        secretKeyRef:
+          name: another-secret
+          key: key1
+          optional: false
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+
+```

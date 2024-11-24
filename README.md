@@ -1098,3 +1098,111 @@ spec:
 status: {}
 
 ```
+
+```sh
+kubectl create ns ckad00015
+```
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: webapp
+ namespace: ckad00015
+ labels:
+   app: nginx
+spec:
+ replicas: 3
+ selector:
+   matchLabels:
+     app: nginx
+ template:
+   metadata:
+     labels:
+       app: nginx
+   spec:
+     containers:
+     - name: nginx
+       image: lfccncf/nginx:1.12.2-alpine
+       ports:
+       - containerPort: 80
+```
+
+```sh
+kubectl edit deployment/webapp -n ckad00015
+kubectl set image deployment/webapp nginx=lfccncf/nginx:1.13.7 -n ckad00015
+kubectl get deployment webapp -n ckad00015 -o yaml
+kubectl rollout undo deployment/webapp -n ckad00015
+kubectl rollout history deployment/webapp -n ckad00015  --revision=3
+```
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "3"
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"labels":{"app":"nginx"},"name":"webapp","namespace":"ckad00015"},"spec":{"replicas":3,"selector":{"matchLabels":{"app":"nginx"}},"template":{"metadata":{"labels":{"app":"nginx"}},"spec":{"containers":[{"image":"lfccncf/nginx:1.12.2-alpine","name":"nginx","ports":[{"containerPort":80}]}]}}}}
+  creationTimestamp: "2024-11-24T10:06:40Z"
+  generation: 4
+  labels:
+    app: nginx
+  name: webapp
+  namespace: ckad00015
+  resourceVersion: "5532"
+  uid: e0444ae4-ea53-4e81-aac4-dfcde20b59f0
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 3
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: nginx
+  strategy:
+    rollingUpdate:
+      maxSurge: 10%
+      maxUnavailable: 4
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - image: lfccncf/nginx:1.12.2-alpine
+        imagePullPolicy: IfNotPresent
+        name: nginx
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status:
+  availableReplicas: 3
+  conditions:
+  - lastTransitionTime: "2024-11-24T10:06:50Z"
+    lastUpdateTime: "2024-11-24T10:06:50Z"
+    message: Deployment has minimum availability.
+    reason: MinimumReplicasAvailable
+    status: "True"
+    type: Available
+  - lastTransitionTime: "2024-11-24T10:06:40Z"
+    lastUpdateTime: "2024-11-24T10:07:32Z"
+    message: ReplicaSet "webapp-855b6758c6" has successfully progressed.
+    reason: NewReplicaSetAvailable
+    status: "True"
+    type: Progressing
+  observedGeneration: 4
+  readyReplicas: 3
+  replicas: 3
+  updatedReplicas: 3
+
+```

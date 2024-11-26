@@ -1206,3 +1206,13 @@ status:
   updatedReplicas: 3
 
 ```
+
+
+
+
+```sh
+kubectl create ns frontend
+kubectl create deploy nginx --image=nginx -n frontend
+kubectl create serviceaccount app -n frontend
+kubectl set serviceaccount deployment nginx app -n frontend
+```

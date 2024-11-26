@@ -1216,3 +1216,13 @@ kubectl create deploy nginx --image=nginx -n frontend
 kubectl create serviceaccount app -n frontend
 kubectl set serviceaccount deployment nginx app -n frontend
 ```
+
+
+
+```sh
+kubectl create ns ckad00017
+kubectl create deploy ckad00017-deployment --image=nginx -n ckad00017  --replicas=5 -o yaml --dry-run=client  | kubectl label --local -f - tier=dmz -o yaml > ckad00017-deployment.yml
+kubectl expose deployment ckad00017-deployment --port=81 --target-port=80 --name=rover --type=NodePort  -n ckad00017 --dry-run=client -o yaml > ckad00017-deployment-svc.yml
+kubectl get svc -n ckad00017
+curl 10.108.207.7:81
+```

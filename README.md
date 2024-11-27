@@ -1226,3 +1226,79 @@ kubectl expose deployment ckad00017-deployment --port=81 --target-port=80 --name
 kubectl get svc -n ckad00017
 curl 10.108.207.7:81
 ```
+
+
+
+```sh
+kubectl create ns ckad00018
+kubectl run ckad00018-newpod  --labels="front=access,db=access,run=ckad00018-newpod" -n ckad00018 --dry-run=client -o yaml --image=nginx:1.16 > ckad00018-newpod.yaml
+kubectl run front --labels="run=front" -n ckad00018 --dry-run=client -o yaml --image=nginx:1.16 > ckad00018-front.yaml
+kubectl run db --labels="run=db" -n ckad00018 --dry-run=client -o yaml --image=nginx:1.16 > ckad00018-db.yaml
+kubectl run test -n ckad00018 --dry-run=client -o yaml --image=nginx:1.16 > ckad00018-test.yaml
+kubectl get pods -n ckad00018 -o wide
+kubectl exec -it ckad00018-newpod -n ckad00018 -- sh -c 'curl 192.168.1.4'
+
+
+
+```
+
+```yaml
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: access-front-policy
+  namespace: ckad00018
+spec:
+  podSelector:
+    matchLabels:
+      front: access
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          run: front
+    ports:
+    - protocol: TCP
+      port: 80
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          run: front
+    ports:
+    - protocol: TCP
+      port: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: access-db-policy
+  namespace: ckad00018
+spec:
+  podSelector:
+    matchLabels:
+      db: access
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          run: db
+    ports:
+    - protocol: TCP
+      port: 80
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          run: db
+    ports:
+    - protocol: TCP
+      port: 80
+```

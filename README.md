@@ -1302,3 +1302,64 @@ spec:
     - protocol: TCP
       port: 80
 ```
+
+
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-dm
+  namespace: ingress-ckad
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      name: nginx-ing
+  template:
+    metadata:
+      labels:
+        name: nginx-ing
+    spec:
+      containers:
+      - name: nginx
+        image: vicuu/nginx:hello81
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 81
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-ing-svc
+  namespace: ingress-ckad
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 81
+  selector:
+    name: nginx-ing
+status:
+  loadBalancer: {}
+```
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-ingress-test
+  namespace: ingress-ckad
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /hello
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx-ing-svc
+            port:
+              number: 80
+```

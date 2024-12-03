@@ -1369,3 +1369,37 @@ spec:
 kubectl create deployment webapp --image=nginx1
 kubectl set image deployment/webapp nginx1=nginx:latest
 ```
+
+
+```sh
+# https://github.com/kubernetes-sigs/metrics-server
+# https://medium.com/@cloudspinx/fix-error-metrics-api-not-available-in-kubernetes-aa10766e1c2f
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+kubectl patch deployment metrics-server -n kube-system --type='json' -p='[
+{
+"op": "add",
+"path": "/spec/template/spec/hostNetwork",
+"value": true
+},
+{
+"op": "replace",
+"path": "/spec/template/spec/containers/0/args",
+"value": [
+"--cert-dir=/tmp",
+"--secure-port=4443",
+"--kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname",
+"--kubelet-use-node-status-port",
+"--metric-resolution=15s",
+"--kubelet-insecure-tls"
+]
+},
+{
+"op": "replace",
+"path": "/spec/template/spec/containers/0/ports/0/containerPort",
+"value": 4443
+}
+]'
+kubectl create ns cpu-stress
+kubectl create deployment webapp --image=nginx --replicas=3 -n cpu-stress
+kubectl top pod -n cpu-stress --sort-by=cpu | awk 'NR==2{print $1}'
+```

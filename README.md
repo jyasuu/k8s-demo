@@ -1363,3 +1363,9 @@ spec:
             port:
               number: 80
 ```
+
+
+```sh
+kubectl create deployment webapp --image=nginx1
+kubectl set image deployment/webapp nginx1=nginx:latest
+```

@@ -1478,4 +1478,5 @@ spec:
 kubectl apply -f pv-volume.yaml
 kubectl apply -f pv-claim.yaml
 kubectl apply -f pv-pod.yaml
+curl $( kubectl get pods -o json | jq '.items[0].status.podIP' -r)
 ```

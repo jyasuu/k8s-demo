@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sidecar-logger
+spec:
+  volumes:
+    - name: shared-logs
+      emptyDir:
+        sizeLimit: "100Mi"  # Limit the volume size
+  containers:
+    - name: app
+      image: busybox
+      command: ["/bin/sh", "-c", "while true; do echo $(date) >> /logs/app.log; sleep 1; done"]
+      volumeMounts:
+        - name: shared-logs
+          mountPath: /logs
+    - name: log-processor
+      image: busybox
+      command: ["/bin/sh", "-c", "tail -n 10 -f /logs/app.log"]
+      volumeMounts:
+        - name: shared-logs
+          mountPath: /logs

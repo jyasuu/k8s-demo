@@ -1,3 +1,4 @@
+# kubectl logs sidecar-logger -c app --follow
 apiVersion: v1
 kind: Pod
 metadata:
